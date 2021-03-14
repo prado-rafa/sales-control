@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const prompt = require('prompt-sync')({sigint: true});
-const fs = require('fs')
+const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 
 let sellersAmounts = new Map();
 
@@ -70,15 +71,15 @@ function registerSelling(sellToBeRegistered){
 
 function printList(){
   const sortedSellings =  _.sortBy(sellings, ({sellerName}) => -1 * sellersAmounts.get(sellerName));
-  const transformed = sortedSellings.reduce((list, {id, ...x}) => { list[id] = x; return list}, {})
+  const transformed = sortedSellings.reduce((aux, {uuid, ...x}) => { aux[uuid] = x; return aux}, {})
 
-  console.log("List sorted by sellers total amount.")
-  console.table(sortedSellings);
+  console.log("List sorted by sellers with the highest to lowest amount sold.")
+  console.table(transformed);
 }
 
 function startRegister() {
   const sellToBeRegistered = {
-    id: sellings.length,
+    uuid: uuidv4(),
     sellerName: null,
     customerName: null,
     date: null,
