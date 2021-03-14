@@ -3,15 +3,25 @@ const prompt = require("prompt-sync")({ sigint: true });
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 
+const EXAMPLE_VENDORS = ["AJ", "Ea", "Io", "On", "Ur"];
+
 let sellersAmounts = new Map();
 
 let sellings = [];
 
 const readFiles = () => {
-  sellersAmounts = new Map(
-    JSON.parse(fs.readFileSync("./amounts.json", "utf8"))
-  );
-  sellings = JSON.parse(fs.readFileSync("./sellings.json", "utf8"));
+  try {
+    sellings = JSON.parse(fs.readFileSync("./sellings.json", "utf8"));
+    sellersAmounts = new Map(
+      JSON.parse(fs.readFileSync("./amounts.json", "utf8"))
+    );
+  } catch {
+    console.log("Oops, creating new files X-X");
+    sellings = [];
+    sellersAmounts = new Map(_.map(EXAMPLE_VENDORS, vendor => [vendor, 0]));
+    fs.writeFileSync("./amounts.json", JSON.stringify([...sellersAmounts]));
+    fs.writeFileSync("./sellings.json", JSON.stringify(sellings));
+  }
 };
 
 const setSellerName = sellToBeRegistered => {
