@@ -17,6 +17,8 @@ const setSellerName =  sellToBeRegistered  => {
   if(!sellersAmounts.has(sellerName)){
     console.log("Seller not registered :'(")
     setSellerName(sellToBeRegistered)
+  } else {
+    sellToBeRegistered.sellerName = sellerName;
   }
 }
 
@@ -26,7 +28,7 @@ const setCustomerName =  sellToBeRegistered  => {
   if(_.isEmpty(customerName)){
     console.log("Invalid name :'(")
     setCustomerName(sellToBeRegistered)
-  } else{
+  } else {
     sellToBeRegistered.customerName = customerName;
   }
 }
@@ -36,35 +38,47 @@ const setItemName =  sellToBeRegistered  => {
 
   if(_.isEmpty(itemName)){
     console.log("Invalid name :'(")
-    setCustomerName(sellToBeRegistered)
+    setItemName(sellToBeRegistered)
   } else{
     sellToBeRegistered.itemName = itemName;
   }
 }
 
 const setValue =  sellToBeRegistered  => {
-  const value = prompt('Value: ');
+  const value = _.toNumber(prompt('Value: '));
 
   if(!_.isNumber(value)){
     console.log("Invalid value :'(")
-    setCustomerName(sellToBeRegistered)
+    setValue(sellToBeRegistered)
   } else{
-    sellToBeRegistered.itemName = _.toNumber(itemName);
+    sellToBeRegistered.value = value;
   }
 }
 
 function registerSelling(sellToBeRegistered){
   sellings.push(sellToBeRegistered);
 
-  fs.writeFile('./sellings.json', JSON.stringify(sellToBeRegistered), (err) => {
-        if (err) console.log('Error writing file:', err)
-  });
+  fs.writeFileSync('./sellings.json', JSON.stringify(sellings));
+
+  sellersAmounts.set(
+    sellToBeRegistered.sellerName,
+    sellersAmounts.get(sellToBeRegistered.sellerName) + sellToBeRegistered.value
+  );
+
+  fs.writeFileSync('./amounts.json', JSON.stringify([...sellersAmounts]));
 }
 
-//Customer Name, Date of Sale, Sale Item Name, Sale Value)
+function printList(){
+  const sortedSellings =  _.sortBy(sellings, ({sellerName}) => -1 * sellersAmounts.get(sellerName));
+  const transformed = sortedSellings.reduce((list, {id, ...x}) => { list[id] = x; return list}, {})
+
+  console.log("List sorted by sellers total amount.")
+  console.table(sortedSellings);
+}
 
 function startRegister() {
   const sellToBeRegistered = {
+    id: sellings.length,
     sellerName: null,
     customerName: null,
     date: null,
@@ -80,9 +94,18 @@ function startRegister() {
   console.log("Thanks! Now registering...");
   registerSelling(sellToBeRegistered);
   console.log("Registered! :)");
+  printList();
 }
 
 console.log("Hi :) Reading files...");
 readFiles();
 console.log("Complete! Let's register a sell. o/");
-startRegister();
+let another = true;
+do {
+  startRegister();
+  const answer = prompt("Register other? Write 'no' if not.");
+  another = answer !== 'no';
+
+} while(another);
+
+console.log("Bye!");
