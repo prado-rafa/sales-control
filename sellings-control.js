@@ -4,6 +4,7 @@ const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 
 const EXAMPLE_VENDORS = ["AJ", "Ea", "Io", "On", "Ur"];
+const DATE_REGEX = /(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.]\d\d\d\d/;
 
 let sellersAmounts = new Map();
 
@@ -48,16 +49,8 @@ const setCustomerName = sellToBeRegistered => {
 
 const setDate = sellToBeRegistered => {
   const date = prompt("Selling date (dd/mm/yyyy): ");
-  const dateSplitted = date.split("/");
 
-  const validDate =
-    dateSplitted.length === 3 &&
-    _.every(
-      dateSplitted,
-      fragment => !_.isNaN(_.toNumber(fragment)) && _.toNumber(fragment) > 0
-    );
-
-  if (!validDate) {
+  if (!date.match(DATE_REGEX)) {
     console.log("Invalid date :'(");
     setDate(sellToBeRegistered);
   } else {
@@ -142,7 +135,7 @@ console.log("Complete! Let's register a sell. o/");
 let another = true;
 do {
   startRegister();
-  const answer = prompt("Register other? Write 'no' if not.\n");
+  const answer = prompt("Register other? ");
   another = answer !== "no";
 } while (another);
 
