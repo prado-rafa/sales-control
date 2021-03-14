@@ -17,27 +17,52 @@ fs.readFile('./amounts.json', 'utf8', (err, jsonString) => {
     sellersAmounts = new Map(JSON.parse(jsonString));
 })
 
-function getSellerName(sellToBeRegistered) {
-  rl.question('Seller name: ', sellerName => { 
-    console.log();
+/*let sellings = [];
+
+fs.readFile('./sellings.json', 'utf8', (err, jsonString) => {
+    if (err) {
+        console.log("Failed to read sellings data T.T\n", err)
+        return
+    }
+    
+    sellersAmounts = JSON.parse(jsonString);
+})*/
+
+const setSellerName = sellToBeRegistered {
+  return new Promise((resolve, reject) => rl.question('Seller name: ', sellerName => { 
     if(sellersAmounts.has(sellerName)){
       sellToBeRegistered.sellerName = sellerName;
+      resolve();
     } else {
-      console.log("Sorry, these seller isn't registered :'(");
-      getSellerName(sellToBeRegistered);
+      reject();
     }
-  });
+  }));
 }
 
-function getSellerName(sellToBeRegistered) {
-  rl.question('Seller name: ', sellerName => { 
-    console.log();
-    if(sellersAmounts.has(sellerName)){
-      sellToBeRegistered.sellerName = sellerName;
-    } else {
-      console.log("Sorry, these seller isn't registered :'(");
-      getSellerName(sellToBeRegistered);
-    }
+const setCustomerName = sellToBeRegistered {
+  return new Promise((resolve) => rl.question('Customer name: ', customerName => { 
+    sellToBeRegistered.customerName = customerName;
+    resolve();
+  }));
+}
+
+const function setItemName(sellToBeRegistered) {
+  return new Promise((resolve) => rl.question('Sale Item: ', itemName => { 
+    sellToBeRegistered.itemName = itemName; 
+    resolve();
+  }));
+}
+
+async function setValue(sellToBeRegistered) {
+  return new Promise((resolve) => rl.question('Value: ', value => { 
+    sellToBeRegistered.value = value;
+    resolve();
+  }));
+}
+
+function registerSelling(sellToBeRegistered){
+  fs.writeFile('./sellings.json', JSON.stringify(sellToBeRegistered), (err) => {
+        if (err) console.log('Error writing file:', err)
   });
 }
 
@@ -52,8 +77,10 @@ function startRegister(){
     value: null
   }
 
-  getSellerName(sellToBeRegistered);
-
+  await setSellerName(sellToBeRegistered);
+  await setCustomerName(sellToBeRegistered);
+  await setItemName(sellToBeRegistered);
+  await setValue(sellToBeRegistered);
 }
 
 startRegister();
