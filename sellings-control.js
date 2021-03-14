@@ -17,7 +17,7 @@ fs.readFile('./amounts.json', 'utf8', (err, jsonString) => {
     sellersAmounts = new Map(JSON.parse(jsonString));
 })
 
-/*let sellings = [];
+let sellings = [];
 
 fs.readFile('./sellings.json', 'utf8', (err, jsonString) => {
     if (err) {
@@ -26,9 +26,9 @@ fs.readFile('./sellings.json', 'utf8', (err, jsonString) => {
     }
     
     sellersAmounts = JSON.parse(jsonString);
-})*/
+})
 
-const setSellerName = sellToBeRegistered {
+const setSellerName = async sellToBeRegistered  => {
   return new Promise((resolve, reject) => rl.question('Seller name: ', sellerName => { 
     if(sellersAmounts.has(sellerName)){
       sellToBeRegistered.sellerName = sellerName;
@@ -39,21 +39,21 @@ const setSellerName = sellToBeRegistered {
   }));
 }
 
-const setCustomerName = sellToBeRegistered {
+const setCustomerName = async sellToBeRegistered => {
   return new Promise((resolve) => rl.question('Customer name: ', customerName => { 
     sellToBeRegistered.customerName = customerName;
     resolve();
   }));
 }
 
-const function setItemName(sellToBeRegistered) {
+const setItemName = async sellToBeRegistered => {
   return new Promise((resolve) => rl.question('Sale Item: ', itemName => { 
     sellToBeRegistered.itemName = itemName; 
     resolve();
   }));
 }
 
-async function setValue(sellToBeRegistered) {
+const setValue = async sellToBeRegistered =>  {
   return new Promise((resolve) => rl.question('Value: ', value => { 
     sellToBeRegistered.value = value;
     resolve();
@@ -61,6 +61,8 @@ async function setValue(sellToBeRegistered) {
 }
 
 function registerSelling(sellToBeRegistered){
+  sellings.push(sellToBeRegistered);
+
   fs.writeFile('./sellings.json', JSON.stringify(sellToBeRegistered), (err) => {
         if (err) console.log('Error writing file:', err)
   });
@@ -68,7 +70,7 @@ function registerSelling(sellToBeRegistered){
 
 //Customer Name, Date of Sale, Sale Item Name, Sale Value)
 
-function startRegister(){
+async function startRegister() {
   const sellToBeRegistered = {
     sellerName: null,
     customerName: null,
@@ -77,11 +79,28 @@ function startRegister(){
     value: null
   }
 
-  await setSellerName(sellToBeRegistered);
-  await setCustomerName(sellToBeRegistered);
-  await setItemName(sellToBeRegistered);
-  await setValue(sellToBeRegistered);
+  await setSellerName(sellToBeRegistered).then(
+    async () => {
+      await setCustomerName(sellToBeRegistered);
+      await setItemName(sellToBeRegistered);
+      await setValue(sellToBeRegistered);
+
+      console.log("Thanks! Now registering...");
+      registerSelling(sellToBeRegistered);
+      console.log("Registered! :)");
+    },
+    () => {
+      console.log("Seller not registered :'(")
+    }
+  );
+
 }
 
-startRegister();
+async function start() {
+  while(1 > 0){
+    await startRegister();
+  }
+}
+
+start();
 
