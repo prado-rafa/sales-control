@@ -1,63 +1,56 @@
-const readline = require("readline");
+const _ = require('lodash');
+const prompt = require('prompt-sync')({sigint: true});
 const fs = require('fs')
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
 
 let sellersAmounts = new Map();
 
-fs.readFile('./amounts.json', 'utf8', (err, jsonString) => {
-    if (err) {
-        console.log("Failed to read sellers amounts T.T\n", err)
-        return
-    }
-    
-    sellersAmounts = new Map(JSON.parse(jsonString));
-})
-
 let sellings = [];
 
-fs.readFile('./sellings.json', 'utf8', (err, jsonString) => {
-    if (err) {
-        console.log("Failed to read sellings data T.T\n", err)
-        return
-    }
-    
-    sellersAmounts = JSON.parse(jsonString);
-})
-
-const setSellerName = async sellToBeRegistered  => {
-  return new Promise((resolve, reject) => rl.question('Seller name: ', sellerName => { 
-    if(sellersAmounts.has(sellerName)){
-      sellToBeRegistered.sellerName = sellerName;
-      resolve();
-    } else {
-      reject();
-    }
-  }));
+const readFiles = () => {
+  sellersAmounts = new Map(JSON.parse(fs.readFileSync('./amounts.json', 'utf8')));
+  sellings = JSON.parse(fs.readFileSync('./sellings.json', 'utf8'))
 }
 
-const setCustomerName = async sellToBeRegistered => {
-  return new Promise((resolve) => rl.question('Customer name: ', customerName => { 
+const setSellerName =  sellToBeRegistered  => {
+  const sellerName = prompt('Seller name: ');
+
+  if(!sellersAmounts.has(sellerName)){
+    console.log("Seller not registered :'(")
+    setSellerName(sellToBeRegistered)
+  }
+}
+
+const setCustomerName =  sellToBeRegistered  => {
+  const customerName = prompt('Customer name: ');
+
+  if(_.isEmpty(customerName)){
+    console.log("Invalid name :'(")
+    setCustomerName(sellToBeRegistered)
+  } else{
     sellToBeRegistered.customerName = customerName;
-    resolve();
-  }));
+  }
 }
 
-const setItemName = async sellToBeRegistered => {
-  return new Promise((resolve) => rl.question('Sale Item: ', itemName => { 
-    sellToBeRegistered.itemName = itemName; 
-    resolve();
-  }));
+const setItemName =  sellToBeRegistered  => {
+  const itemName = prompt('Item name: ');
+
+  if(_.isEmpty(itemName)){
+    console.log("Invalid name :'(")
+    setCustomerName(sellToBeRegistered)
+  } else{
+    sellToBeRegistered.itemName = itemName;
+  }
 }
 
-const setValue = async sellToBeRegistered =>  {
-  return new Promise((resolve) => rl.question('Value: ', value => { 
-    sellToBeRegistered.value = value;
-    resolve();
-  }));
+const setValue =  sellToBeRegistered  => {
+  const value = prompt('Value: ');
+
+  if(!_.isNumber(value)){
+    console.log("Invalid value :'(")
+    setCustomerName(sellToBeRegistered)
+  } else{
+    sellToBeRegistered.itemName = _.toNumber(itemName);
+  }
 }
 
 function registerSelling(sellToBeRegistered){
@@ -70,7 +63,7 @@ function registerSelling(sellToBeRegistered){
 
 //Customer Name, Date of Sale, Sale Item Name, Sale Value)
 
-async function startRegister() {
+function startRegister() {
   const sellToBeRegistered = {
     sellerName: null,
     customerName: null,
@@ -79,28 +72,17 @@ async function startRegister() {
     value: null
   }
 
-  await setSellerName(sellToBeRegistered).then(
-    async () => {
-      await setCustomerName(sellToBeRegistered);
-      await setItemName(sellToBeRegistered);
-      await setValue(sellToBeRegistered);
+  setSellerName(sellToBeRegistered)
+  setCustomerName(sellToBeRegistered);
+  setItemName(sellToBeRegistered);
+  setValue(sellToBeRegistered);
 
-      console.log("Thanks! Now registering...");
-      registerSelling(sellToBeRegistered);
-      console.log("Registered! :)");
-    },
-    () => {
-      console.log("Seller not registered :'(")
-    }
-  );
-
+  console.log("Thanks! Now registering...");
+  registerSelling(sellToBeRegistered);
+  console.log("Registered! :)");
 }
 
-async function start() {
-  while(1 > 0){
-    await startRegister();
-  }
-}
-
-start();
-
+console.log("Hi :) Reading files...");
+readFiles();
+console.log("Complete! Let's register a sell. o/");
+startRegister();
