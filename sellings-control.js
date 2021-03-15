@@ -3,7 +3,7 @@ const prompt = require("prompt-sync")({ sigint: true });
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 
-const EXAMPLE_VENDORS = ["AJ", "Ea", "Io", "On", "Ur"];
+const EXAMPLE_SELLERS = ["AJ", "Ea", "Io", "On", "Ur"];
 const DATE_REGEX = /(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.]\d\d\d\d/;
 
 let sellersAmounts = new Map();
@@ -13,14 +13,15 @@ let sellings = [];
 const readFiles = () => {
   try {
     sellings = JSON.parse(fs.readFileSync("./sellings.json", "utf8"));
-    sellersAmounts = new Map(
-      JSON.parse(fs.readFileSync("./amounts.json", "utf8"))
-    );
+    sellersAmounts = JSON.parse(fs.readFileSync("./amounts.json", "utf8"));
   } catch {
     console.log("Oops, creating new files X-X");
     sellings = [];
-    sellersAmounts = new Map(_.map(EXAMPLE_VENDORS, vendor => [vendor, 0]));
-    fs.writeFileSync("./amounts.json", JSON.stringify([...sellersAmounts]));
+    sellersAmounts = _.map(EXAMPLE_SELLERS, seller => ({
+      seller,
+      amount: 0
+    }));
+    fs.writeFileSync("./amounts.json", JSON.stringify(sellersAmounts));
     fs.writeFileSync("./sellings.json", JSON.stringify(sellings));
   }
 };
@@ -28,7 +29,7 @@ const readFiles = () => {
 const setSellerName = sellToBeRegistered => {
   const sellerName = prompt("Seller name: ");
 
-  if (!sellersAmounts.has(sellerName)) {
+  if (!_.find(sellersAmounts, ({ seller }) => seller === sellerName)) {
     console.log("Seller not registered :'(");
     setSellerName(sellToBeRegistered);
   } else {
@@ -85,26 +86,45 @@ function registerSelling(sellToBeRegistered) {
 
   fs.writeFileSync("./sellings.json", JSON.stringify(sellings));
 
-  sellersAmounts.set(
-    sellToBeRegistered.sellerName,
-    sellersAmounts.get(sellToBeRegistered.sellerName) + sellToBeRegistered.value
+  const sellerToAddAmmout = _.find(
+    sellersAmounts,
+    ({ seller }) => seller === sellToBeRegistered.sellerName
   );
 
-  fs.writeFileSync("./amounts.json", JSON.stringify([...sellersAmounts]));
+  sellerToAddAmmout.amount += sellToBeRegistered.value;
+
+  fs.writeFileSync("./amounts.json", JSON.stringify(sellersAmounts));
 }
 
 function printList() {
-  const sortedSellings = _.sortBy(
-    sellings,
-    ({ sellerName }) => -1 * sellersAmounts.get(sellerName)
+  console.log(
+    "List sorted by sellers with the highest to lowest amount sold.\n"
   );
-  const transformed = sortedSellings.reduce((aux, { uuid, ...x }) => {
-    aux[uuid] = x;
-    return aux;
-  }, {});
 
-  console.log("List sorted by sellers with the highest to lowest amount sold.");
-  console.table(transformed);
+  const sortedAmounts = _.sortBy(sellersAmounts, ({ amount }) => amount * -1);
+  const sellingsMap = _.groupBy(sellings, "sellerName");
+
+  _.forEach(sortedAmounts, ({ seller, amount }, index) => {
+    const list = sellingsMap[seller];
+
+    console.log(`#${index} ${seller} (amount: ${amount})`);
+
+    if (list) {
+      const transformed = _.reduce(
+        list,
+        (aux, { uuid, ...x }) => {
+          aux[uuid] = _.omit(x, "sellerName");
+          return aux;
+        },
+        {}
+      );
+
+      console.table(transformed);
+      console.log("\n");
+    } else {
+      console.log("No selling reported :'(\n");
+    }
+  });
 }
 
 function startRegister() {
