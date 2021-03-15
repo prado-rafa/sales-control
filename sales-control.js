@@ -8,21 +8,21 @@ const DATE_REGEX = /(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.]\d\d\d\d/
 
 let sellersAmounts = new Map();
 
-let sellings = [];
+let sales = [];
 
 const readFiles = () => {
   try {
-    sellings = JSON.parse(fs.readFileSync("./sellings.json", "utf8"));
+    sales = JSON.parse(fs.readFileSync("./sales.json", "utf8"));
     sellersAmounts = JSON.parse(fs.readFileSync("./amounts.json", "utf8"));
   } catch {
     console.log("Oops, creating new files X-X");
-    sellings = [];
+    sales = [];
     sellersAmounts = _.map(EXAMPLE_SELLERS, seller => ({
       seller,
       amount: 0
     }));
     fs.writeFileSync("./amounts.json", JSON.stringify(sellersAmounts));
-    fs.writeFileSync("./sellings.json", JSON.stringify(sellings));
+    fs.writeFileSync("./sales.json", JSON.stringify(sales));
   }
 };
 
@@ -49,7 +49,7 @@ const setCustomerName = sellToBeRegistered => {
 };
 
 const setDate = sellToBeRegistered => {
-  const date = prompt("Selling date (dd/mm/yyyy): ");
+  const date = prompt("sale date (dd/mm/yyyy): ");
 
   if (!date.match(DATE_REGEX)) {
     console.log("Invalid date :'(");
@@ -81,10 +81,10 @@ const setValue = sellToBeRegistered => {
   }
 };
 
-function registerSelling(sellToBeRegistered) {
-  sellings.push(sellToBeRegistered);
+function registerSale(sellToBeRegistered) {
+  sales.push(sellToBeRegistered);
 
-  fs.writeFileSync("./sellings.json", JSON.stringify(sellings));
+  fs.writeFileSync("./sales.json", JSON.stringify(sales));
 
   const sellerToAddAmmout = _.find(
     sellersAmounts,
@@ -102,10 +102,10 @@ function printList() {
   );
 
   const sortedAmounts = _.sortBy(sellersAmounts, ({ amount }) => amount * -1);
-  const sellingsMap = _.groupBy(sellings, "sellerName");
+  const salesMap = _.groupBy(sales, "sellerName");
 
   _.forEach(sortedAmounts, ({ seller, amount }, index) => {
-    const list = sellingsMap[seller];
+    const list = salesMap[seller];
 
     console.log(`#${index} ${seller} (amount: ${amount})`);
 
@@ -122,7 +122,7 @@ function printList() {
       console.table(transformed);
       console.log("\n");
     } else {
-      console.log("No selling reported :'(\n");
+      console.log("No sale reported :'(\n");
     }
   });
 }
@@ -144,7 +144,7 @@ function startRegister() {
   setValue(sellToBeRegistered);
 
   console.log("Thanks! Now registering...");
-  registerSelling(sellToBeRegistered);
+  registerSale(sellToBeRegistered);
   console.log("Registered! :)");
   printList();
 }
