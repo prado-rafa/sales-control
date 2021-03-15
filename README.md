@@ -4,7 +4,7 @@ These project was made for a stage of a selection process. The challenge was to 
 
 ### Built With
 
-Javascript
+Javascript using lodash, prompt-sync and uuid.
 
 ### How to use
 
